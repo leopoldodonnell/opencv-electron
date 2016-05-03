@@ -1,0 +1,19 @@
+{
+  "name": "opencv-react-electron",
+  "version": "0.0.0",
+  "homepage": "https://github.com/leopoldodonnell/opencv-electron.git",
+  "authors": [
+    "Leo O'Donnell <leopold.odonnell@gmail.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "~1.4.0"
+  }
+}

@@ -1,0 +1,4 @@
+node_modules/
+bower_components/
+face-detect-darwin-x64/
+.idea

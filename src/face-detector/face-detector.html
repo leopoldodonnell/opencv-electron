@@ -1,0 +1,149 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<dom-module id='face-detector'>
+  <style>
+    video {
+      position: absolute;
+      x: 0px;
+      y: 0px;
+      width: 640px;
+      height: 480px;
+      background: black;
+    }
+    
+    canvas {
+      position: absolute; 
+      x: 0px, 
+      y: 0px, 
+      width: 640px, 
+      height: 480px; 
+      z-index: 100;
+    }
+  </style>
+  
+  <template>
+    <video id='video' autoplay></video>
+  </template>
+  
+  <script>
+  (() => {
+    'use strict';
+    
+    const remote = require('remote');
+    const ipcRenderer = require('electron').ipcRenderer;
+
+    let face_detector_behaviors = {};
+    
+    class FaceDetector {
+      get behaviors() {
+        return [face_detector_behaviors];
+      }
+      
+      beforeRegister() {
+        this.is = 'face-detector';
+        
+        this.properties = {
+          video: {
+            type: Object,
+            value: null      
+          },
+          detector: {
+            type: Object,
+            value: null
+          }
+        };
+      }
+      
+      // Define other lifecycle methods as you need.
+      ready() { 
+        // Normalize the various vendor prefixed versions of getUserMedia.
+        navigator.getUserMedia = (navigator.getUserMedia ||
+                                  navigator.webkitGetUserMedia ||
+                                  navigator.mozGetUserMedia || 
+                                  navigator.msGetUserMedia);      
+
+        // Not showing vendor prefixes.
+        navigator.getUserMedia({video: true, audio: false}, localMediaStream => {
+          this.video = document.querySelector('video');
+          this.video.src = window.URL.createObjectURL(localMediaStream);
+
+          // Note: onloadedmetadata doesn't fire in Chrome when using it with getUserMedia.
+          // See crbug.com/110938.
+          this.video.onloadedmetadata = e => {
+            // Ready to go. Do some stuff.
+            console.log("Media meta data loaded.");
+            this.initialize();
+            this.detector = remote.getGlobal('faceDetector');
+            this.startDetecting();
+          };
+        }, (e) => {console.log('Media Reeeejected!', e);});
+      }
+      
+      attached() { }
+      detached() { }
+      attributeChanged() { }
+      
+      initialize() {
+        this.canvas = document.createElement("canvas");                    
+        document.body.appendChild(this.canvas);
+        this.context = this.canvas.getContext('2d');
+
+        this.canvas.x = 0;
+        this.canvas.y = 0;
+        this.canvas.width = 640;
+        this.canvas.height = 480;
+        this.canvas.style.position = "absolute";
+        
+        this._detectInterval = 250;
+
+        ipcRenderer.on('on-face-detected', (event, faces) => {
+          console.log("Faces detected: " + faces.length);
+          this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+          faces.every(element => this._drawFace(element));
+        });
+        
+        this.video.onresize = (event) => {
+          this._updateViewportSize();
+        }
+      }
+      
+      set detectInterval(interval) {
+        this._detectInterval = interval;
+        this.stopDetecting();
+        this.startDetecting();
+      }
+      
+      get detectInterval() {
+        return this._detectInterval;
+      }
+      
+      startDetecting() {
+        console.log("startDetecting");
+        this.detector.startDetecting(1, this.detectInterval, 'on-face-detected');
+      }
+      
+      stopDetecting() {
+        this.detector.stopDetecting();
+      }
+      
+      _drawFace(face) {
+        console.log("Draw face: " + face.x + ", " + face.y + ", " + face.width + ", " + face.height);
+        this.context = this.canvas.getContext('2d');
+        this.context.beginPath();
+        this.context.lineWidth = "3";
+        this.context.strokeStyle = "red";
+        this.context.rect(face.x, face.y, face.width, face.height);
+        // this.context.rect(0, 0, 50, 50);
+        this.context.stroke();
+      }
+      
+      _updateViewportSize() {
+        this.detector.setViewportSize(this.video.videoWidth, this.video.videoHeight);
+        // this.remoteDetector.setViewportSize(this.video.width, this.video.height);
+      }
+    }
+    
+    Polymer(FaceDetector);
+  })();
+  </script>
+</dom-module>
