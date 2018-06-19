@@ -21,9 +21,13 @@
     "start": "electron main.js",
     "watch": "./node_modules/.bin/webpack-dev-server",
     "electron-rebuild": "./node_modules/.bin/electron-rebuild",
-    "build-osx": "./node_modules/.bin/electron-packager ./ face-detect --platform=darwin --arch=x64 --version=0.37.8 --ignore=\"node_modules/(electron-*|dev-dependency)\" --overwrite --asar"
+    "build-osx": "./node_modules/.bin/electron-packager ./ face-detect --platform=darwin --arch=x64 --version=0.37.8 --ignore=\"node_modules/(electron-*|dev-dependency)\" --overwrite --asar",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "dependencies": {
-    "opencv": "^5.0.0"
-  }
+    "opencv": "^5.0.0",
+    "snyk": "^1.83.0"
+  },
+  "snyk": true
 }
