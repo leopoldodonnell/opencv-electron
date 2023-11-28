@@ -24,6 +24,6 @@
     "build-osx": "./node_modules/.bin/electron-packager ./ face-detect --platform=darwin --arch=x64 --version=0.37.8 --ignore=\"node_modules/(electron-*|dev-dependency)\" --overwrite --asar"
   },
   "dependencies": {
-    "opencv": "^5.0.0"
+    "opencv": "^7.0.0"
   }
 }
